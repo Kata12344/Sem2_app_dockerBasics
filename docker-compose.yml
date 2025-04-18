@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+      MYSQL_DATABASE: mydatabase
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  flask:
+    build: ./flask
+    container_name: flask_container
+    restart: always
+    env_file:
+      - ./flask/.env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    # Optional: Wait for DB to be ready
+    command: >
+      sh -c "sleep 10 && python app.py"
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+          cpus: "0.50"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mysql_data:
